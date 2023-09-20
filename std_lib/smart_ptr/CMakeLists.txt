@@ -1,0 +1,3 @@
+add_executable(unique_ptr unique_ptr_main.cc)
+add_executable(shared_ptr shared_ptr_main.cc)
+add_executable(shared_ptr_why_weak_ptr shared_ptr_why_weak_ptr_main.cc)
