@@ -1,3 +1,5 @@
+#pragma once
+
 // C++ program to insert a node in AVL tree
 #include "common.h"
 
