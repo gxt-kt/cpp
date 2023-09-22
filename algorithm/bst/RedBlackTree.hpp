@@ -13,6 +13,8 @@ has the same number of black nodes.
 5. Every leaf (e.i. NULL node) must be colored BLACK.
 */
 
+// Ref: https://www.geeksforgeeks.org/introduction-to-red-black-tree/?ref=lbp
+
 #include <iostream>
 #include <queue>
 
