@@ -15,4 +15,6 @@ foreach(source_file ${SOURCE_FILES})
     add_executable(${file_name} ${source_file})
 endforeach()
 
+target_link_libraries(demo27 pthread)  
+
 
