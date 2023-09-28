@@ -23,6 +23,12 @@ int main(int argc, char* argv[]) {
     std::unordered_map<Standard,int,StandardHashFunc1> standard1;
     standard1.insert({{1,{1.0f},"1"},10});
 
+    // NOTE: why we must use & for the third param of decltype(StandardHashFunc2)
+    // Snap:
+    // template <typename T>
+    // void Test(T t = T()) {
+    //   T tmp; // because decltype(fun) is not a type. ( lack of * )
+    // }
     std::unordered_map<Standard,int,decltype(&StandardHashFunc2)> standard2_1(13,StandardHashFunc2);
     std::unordered_map<Standard,int,std::function<size_t(const Standard&)>> standard2_2(13,StandardHashFunc2);
     std::unordered_map<Standard, int, std::function<size_t(const Standard&)>> standard2_3(13, [](const Standard& obj) -> size_t {
