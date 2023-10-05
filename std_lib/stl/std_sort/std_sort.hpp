@@ -4,14 +4,14 @@
 // Ref :
 // https://stackoverflow.com/questions/22339240/what-algorithms-are-used-in-c11-stdsort-in-different-stl-implementations
 // https://www.geeksforgeeks.org/internal-details-of-stdsort-in-c/
+// https://en.wikipedia.org/wiki/Introsort
 //
 //
+
 /* A Program to sort the array using Introsort.
 The most popular C++ STL Algorithm- sort()
 uses Introsort. */
 
-#include <bits/stdc++.h>
-using namespace std;
 
 // A utility function to swap the values pointed by
 // the two pointers
@@ -59,10 +59,10 @@ inline int *Partition(int arr[], int low, int high) {
       // increment index of smaller element
       i++;
 
-      swap(arr[i], arr[j]);
+      std::swap(arr[i], arr[j]);
     }
   }
-  swap(arr[i + 1], arr[high]);
+  std::swap(arr[i + 1], arr[high]);
   return (arr + i + 1);
 }
 
@@ -81,6 +81,8 @@ inline int *MedianOfThree(int *a, int *b, int *c) {
   if (*c <= *a && *a < *b) return (a);
 
   if (*c <= *b && *b <= *c) return (b);
+
+  return (a); // will not happen
 }
 
 // A Utility function to perform intro sort
@@ -96,8 +98,8 @@ inline void IntrosortUtil(int arr[], int *begin, int *end, int depthLimit) {
 
   // If the depth is zero use heapsort
   if (depthLimit == 0) {
-    make_heap(begin, end + 1);
-    sort_heap(begin, end + 1);
+    std::make_heap(begin, end + 1);
+    std::sort_heap(begin, end + 1);
     return;
   }
 

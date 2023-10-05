@@ -11,9 +11,5 @@ int main() {
   Introsort(arr, arr, arr + n - 1);
   printArray(arr, n);
 
-
-  std::vector<int> aa{10,20,40,20,30};
-  std::sort(aa.begin(),aa.end());
-
   return (0);
 }
