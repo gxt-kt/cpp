@@ -7,6 +7,8 @@
 #include <type_traits>
 
 // Ref: https://gist.github.com/Redchards/c5be14c2998f1ca1d757
+//
+// Ref: https://stackoverflow.com/questions/49669958/details-of-stdmake-index-sequence-and-stdindex-sequence
 
 // Actually, a subtle bug may arise when the function is using index_constant as parameter.
 // For this reason, a more correct implementation should define a specialized class, hidden in a namespace,
