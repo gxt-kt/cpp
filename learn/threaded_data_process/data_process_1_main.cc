@@ -6,6 +6,8 @@
 
 #include "common.h"
 
+// Ref : https://subingwen.cn/cpp/condition/
+
 std::mutex mtx;
 std::condition_variable cv;
 
