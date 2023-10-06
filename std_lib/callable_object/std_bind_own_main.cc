@@ -1,3 +1,6 @@
+#include <bits/utility.h>
+#include "common.h"
+#include <initializer_list>
 #include <iostream>
 #include <functional>
 #include <tuple>
@@ -100,9 +103,18 @@ binder<Fn, Args...> bind(Fn&& f, Args&&... args)
 }
 }
 
+int MaxFun(int a,int b) {
+  return a>b?a:b;
+}
+
 int main (int argc, char *argv[]) {
-  auto max_fun=[](int a,int b){return a>b?a:b;};
-  auto max_fun_bind=gxt::bind(max_fun,10,20);
+  auto max_fun_bind=gxt::bind(MaxFun,10,std::placeholders::_1);
+  gDebug(max_fun_bind(5));
+
+  // FIXME: find a bug that cannot use lambda expression 
+  // auto max_fun=[](int a,int b){return a>b?a:b;};
+  // auto max_fun_bind=gxt::bind(max_fun,10,std::placeholders::_1);
+
 
   return 0;
 }
