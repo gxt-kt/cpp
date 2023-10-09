@@ -4,4 +4,6 @@ add_executable(std_function std_function_main.cc)
 add_executable(std_bind std_bind_main.cc)
 add_executable(std_invoke std_invoke_main.cc)
 
-add_executable(std_bind_own std_bind_own_main.cc)
+add_executable(my_function my_function_main.cc)
+add_executable(my_bind my_bind_main.cc)
+add_executable(my_invoke my_invoke_main.cc)
