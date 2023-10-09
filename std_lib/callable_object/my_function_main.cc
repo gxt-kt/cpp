@@ -1,5 +1,9 @@
 #include "callable_objects.hpp"
 
+// Ref: 类型擦除可以参考：
+// https://github.com/apachecn/apachecn-c-cpp-zh/blob/master/docs/adv-cpp-prog-cb/09.md
+// https://fuzhe1989.github.io/2017/10/29/cpp-type-erasure/
+
 GXT_NAMESPACE_BEGIN
 
 template <class FnSig>
