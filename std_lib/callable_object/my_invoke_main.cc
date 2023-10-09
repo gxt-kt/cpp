@@ -49,14 +49,7 @@ T&& declval() noexcept
 int main(int argc, char* argv[]) {
   gDebug() << "exec" << __FILE__;
 
-  // decltype(A().Fun()) aa;
-  decltype(std::declval<A>().Fun()) ab;
-  decltype(declval<A>().a) ac;
-  gDebug(TYPE(declval<A>()));
-  gDebug(TYPE(std::declval<A>()));
-  ab=2;
-  gDebug(TYPE(ac));
-  gDebug(TYPE(ab));
+  gDebug("need to complete");
 
   // { std::invoke(GXT_NAMESPACE::Foo_1, 1); }
   // {
