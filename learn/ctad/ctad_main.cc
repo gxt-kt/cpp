@@ -22,15 +22,20 @@ int main(int argc, char *argv[]) {
   }
 
   {
-    CtadTest<int> a(10);
-    a.Fun();
+    CtadTest1<int> a(10);
     // error because the T cannot be deduced
-    // CtadTest b();  // use ctad
-    // b.Fun();
-    CtadTest c(10);  // use ctad
-    c.Fun();
-    CtadTest d("123");  // use ctad
-    d.Fun();
+    // CtadTest1 b();  // use ctad
+
+    CtadTest1 c(10);     // use ctad
+    CtadTest1 d("123");  // use ctad
+  }
+  {
+    CtadTest2<int> a(10);
+    // error : template construct must set
+    // CtadTest2 b(10);  // use ctad
+
+    CtadTest3<int> c(10);
+    CtadTest3 d(10);  // use ctad
   }
 
   return 0;
