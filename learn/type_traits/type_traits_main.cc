@@ -74,16 +74,76 @@ void Test() {
   gDebug(IfFunctionHasInputValue<decltype(Fun2)>::value);
   gDebug(IfFunctionHasInputValue<int>::value);  // other type
 
-  // But the template struct still have bug for lambda expression
+  // But the template struct not support lambda expression
   auto has_input = [](int) {};
   auto hasnt_input = []() {};
   gDebug(IfFunctionHasInputValue<decltype(has_input)>::value);
   gDebug(IfFunctionHasInputValue<decltype(hasnt_input)>::value);
-
-  std::function<int()> aa;
 }
 
 }  // namespace demo03
+
+namespace demo04 {
+// use std::enable_if with function return type to constraint T
+
+// T must be integer
+template <typename T>
+typename std::enable_if<std::is_integral_v<T>, T>::type Fun(T t) {
+  gDebug("is_integral_v");
+  return t;
+}
+// T must be float type
+template <typename T>
+typename std::enable_if<std::is_floating_point_v<T>, T>::type Fun(T t) {
+  gDebug("is_floating_point_v");
+  return t;
+}
+
+// the same like Fun
+template <typename T, std::enable_if_t<std::is_integral_v<T>, size_t> = 0>
+void Fun1(T t) {}
+// the same like Fun
+template <typename T, std::enable_if_t<std::is_floating_point_v<T>, size_t> = 0>
+void Fun1(T t) {}
+
+void Test() {
+  Fun(10);
+  Fun(10.0f);
+  // Fun("123"); // error: input value isn't integer or float type
+  Fun1(10);
+  Fun1(10.0f);
+  // Fun1("123"); // error: input value isn't integer or float type
+}
+
+}  // namespace demo04
+
+namespace demo05 {
+// use std::enable_if with class template
+
+// If not understand class template ues default parameter and specialization at the same time
+// Can read 
+// https://blog.csdn.net/my_id_kt/article/details/133820016?csdn_share_tail=%7B%22type%22%3A%22blog%22%2C%22rType%22%3A%22article%22%2C%22rId%22%3A%22133820016%22%2C%22source%22%3A%22my_id_kt%22%7D
+
+
+// This type of A will not be instantiated, so unnecessnary to be definded 
+// Just claim to let others to partial specialization
+template <typename T,typename U=void>
+struct A;
+
+template <typename T>
+struct A<T,std::enable_if_t<std::is_integral_v<T>>> : std::true_type {};
+
+template <typename T>
+struct A<T,std::enable_if_t<std::is_floating_point_v<T>>> : std::false_type {};
+
+void Test() {
+  gDebug(A<int>::type::value);
+  gDebug(A<float>::type::value);
+  // But if use other type, you need to define basic A class.
+  // gDebug(A<char*>::type::value);
+}
+
+}  // namespace demo05
 
 int main(int argc, char *argv[]) {
   demo01::Test();
@@ -91,6 +151,10 @@ int main(int argc, char *argv[]) {
   demo02::Test();
   gDebugCol1() << G_SPLIT_LINE;
   demo03::Test();
+  gDebugCol1() << G_SPLIT_LINE;
+  demo04::Test();
+  gDebugCol1() << G_SPLIT_LINE;
+  demo05::Test();
   gDebugCol1() << G_SPLIT_LINE;
   return 0;
 }
