@@ -10,6 +10,7 @@
 // There are also some other web to help you understand the index_sequence
 // https://stackoverflow.com/questions/17424477/implementation-c14-make-integer-sequence
 // https://en.cppreference.com/w/cpp/utility/integer_sequence
+// https://zhuanlan.zhihu.com/p/627712738
 // https://cloud.tencent.com/developer/article/1768976
 
 // generate a array : 0,1,4,9,16...(N-1)^2
