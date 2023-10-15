@@ -36,6 +36,7 @@ template <typename... Args>
 void Print(Args... args) {
   // use binary left fold here
   (std::cout << ... << args) << std::endl;
+  ((std::cout << args << ' '), ...) << std::endl;
 }
 
 int main() {
