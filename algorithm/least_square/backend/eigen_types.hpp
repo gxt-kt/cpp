@@ -14,7 +14,7 @@
 using my_double = double;
 using my_float = float;
 
-#define MY_TYPE 1
+#define MY_TYPE 0
 #if !MY_TYPE
 using my_type = double;
 #else

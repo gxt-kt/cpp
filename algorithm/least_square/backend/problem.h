@@ -2,6 +2,9 @@
 
 #include <cmath>
 
+// 主要用在函数SelfAdjointEigenSolver
+#include <eigen3/Eigen/Dense>
+
 #include "edge.h"
 #include "vertex.h"
 
@@ -158,6 +161,85 @@ class Problem {
 
   bool Marginalize(const std::shared_ptr<Vertex> frameVertex);
 
+  void TestMarginalize() {
+    // Add marg test
+    int idx = 1;           // marg 中间那个变量
+    int dim = 1;           // marg 变量的维度
+    int reserve_size = 3;  // 总共变量的维度
+    double delta1 = 0.1 * 0.1;
+    double delta2 = 0.2 * 0.2;
+    double delta3 = 0.3 * 0.3;
+
+    int cols = 3;
+    MatXX H_marg(MatXX::Zero(cols, cols));
+    H_marg << my_type{1. / delta1}, my_type{-1. / delta1}, my_type{0},
+        my_type{-1. / delta1}, my_type{1. / delta1 + 1. / delta2 + 1. / delta3},
+        my_type{-1. / delta3}, my_type{0.}, my_type{-1. / delta3},
+        my_type{1 / delta3};
+    std::cout << "---------- TEST Marg: before marg------------" << std::endl;
+    std::cout << H_marg << std::endl;
+
+    // TODO:: home work. 将变量移动到右下角
+    /// 准备工作： move the marg pose to the Hmm bottown right
+    // 将 row i 移动矩阵最下面
+    MatXX temp_rows = H_marg.block(idx, 0, dim, reserve_size);
+    MatXX temp_botRows =
+        H_marg.block(idx + dim, 0, reserve_size - idx - dim, reserve_size);
+    // H_marg.block(?,?,?,?) = temp_botRows;
+    // H_marg.block(?,?,?,?) = temp_rows;
+    // NOTE: gxt: 完成TODO
+    H_marg.block(idx, 0, reserve_size - idx - dim, reserve_size) = temp_botRows;
+    H_marg.block(reserve_size - dim, 0, dim, reserve_size) = temp_rows;
+
+    // 将 col i 移动矩阵最右边
+    MatXX temp_cols = H_marg.block(0, idx, reserve_size, dim);
+    MatXX temp_rightCols =
+        H_marg.block(0, idx + dim, reserve_size, reserve_size - idx - dim);
+    H_marg.block(0, idx, reserve_size, reserve_size - idx - dim) =
+        temp_rightCols;
+    H_marg.block(0, reserve_size - dim, reserve_size, dim) = temp_cols;
+
+    std::cout << "---------- TEST Marg: 将变量移动到右下角------------"
+              << std::endl;
+    std::cout << H_marg << std::endl;
+
+    /// 开始 marg ： schur
+    double eps = 1e-8;
+    int m2 = dim;
+    int n2 = reserve_size - dim;  // 剩余变量的维度
+    // Eigen::MatrixXd Amm = my_type{0.5} * (H_marg.block(n2, n2, m2, m2) +
+    //                              H_marg.block(n2, n2, m2, m2).transpose());
+    MatXX Amm = my_type{0.5} * (H_marg.block(n2, n2, m2, m2) +
+                                H_marg.block(n2, n2, m2, m2).transpose());
+
+    // Eigen::SelfAdjointEigenSolver<MatXX> saes;
+    // MatXX Amm_inv;
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic>> saes(Amm.cast<double>());
+    Eigen::Matrix<double,Eigen::Dynamic,Eigen::Dynamic> Amm_inv_double = saes.eigenvectors() *
+                    Eigen::VectorXd((saes.eigenvalues().array() > eps)
+                             .select(saes.eigenvalues().array().inverse(),
+                             0))
+                        .asDiagonal() *
+                    saes.eigenvectors().transpose();
+    MatXX Amm_inv=Amm_inv_double.cast<my_type>();
+
+
+    // TODO:: home work. 完成舒尔补操作
+    // Eigen::MatrixXd Arm = H_marg.block(?,?,?,?);
+    // Eigen::MatrixXd Amr = H_marg.block(?,?,?,?);
+    // Eigen::MatrixXd Arr = H_marg.block(?,?,?,?);
+    // NOTE: gxt 完成TODO
+    MatXX Arm = H_marg.block(0, n2, n2, m2);
+    MatXX Amr = H_marg.block(n2, 0, m2, n2);
+    MatXX Arr = H_marg.block(0, 0, n2, n2);
+
+    MatXX tempB = Arm * Amm_inv;
+    MatXX H_prior = Arr - tempB * Amr;
+
+    std::cout << "---------- TEST Marg: after marg------------" << std::endl;
+    std::cout << H_prior << std::endl;
+  }
+
   // test compute prior
   void TestComputePrior();
 
@@ -175,16 +257,58 @@ class Problem {
     ordering_poses_ = 0;
     ordering_generic_ = 0;
     ordering_landmarks_ = 0;
+    int debug = 0;
 
     // Note:: verticies_ 是 map 类型的, 顺序是按照 id 号排序的
     // 统计带估计的所有变量的总维度
+    gDebugWarn(verticies_.size());
     for (auto vertex : verticies_) {
       ordering_generic_ += vertex.second->LocalDimension();
+
+      if (IsPoseVertex(vertex.second)) {
+        debug += vertex.second->LocalDimension();
+      }
+
+      if (problem_type_ ==
+          ProblemType::SLAM_PROBLEM)  // 如果是 slam 问题，还要分别统计 pose 和
+                                      // landmark 的维数，后面会对他们进行排序
+      {
+        AddOrderingSLAM(vertex.second);
+      }
+      if (IsPoseVertex(vertex.second)) {
+        std::cout << vertex.second->Id()
+                  << " order: " << vertex.second->OrderingId() << std::endl;
+      }
+    }
+    gDebugWarn(ordering_generic_);
+
+    std::cout << "\n ordered_landmark_vertices_ size : "
+              << idx_landmark_vertices_.size() << std::endl;
+    if (problem_type_ == ProblemType::SLAM_PROBLEM) {
+      // 这里要把 landmark 的 ordering 加上 pose 的数量，就保持了 landmark
+      // 在后,而 pose 在前
+      ulong all_pose_dimension = ordering_poses_;
+      for (auto landmarkVertex : idx_landmark_vertices_) {
+        landmarkVertex.second->SetOrderingId(
+            landmarkVertex.second->OrderingId() + all_pose_dimension);
+      }
     }
   }
 
   /// set ordering for new vertex in slam problem
-  void AddOrderingSLAM(std::shared_ptr<Vertex> v);
+  void AddOrderingSLAM(std::shared_ptr<Vertex> v) {
+    if (IsPoseVertex(v)) {
+      v->SetOrderingId(ordering_poses_);
+      idx_pose_vertices_.insert(
+          std::pair<ulong, std::shared_ptr<Vertex>>(v->Id(), v));
+      ordering_poses_ += v->LocalDimension();
+    } else if (IsLandmarkVertex(v)) {
+      v->SetOrderingId(ordering_landmarks_);
+      ordering_landmarks_ += v->LocalDimension();
+      idx_landmark_vertices_.insert(
+          std::pair<ulong, std::shared_ptr<Vertex>>(v->Id(), v));
+    }
+  }
 
   /// 构造大H矩阵
   void MakeHessian() {
@@ -243,9 +367,9 @@ class Problem {
     // t_hessian_cost_;// gxt:时间貌似不重要在这里
 
     // gDebug(H);
-    gDebug(Hessian_);
+    // gDebug(Hessian_);
     // gDebug(b);
-    gDebug(b_);
+    // gDebug(b_);
 
     delta_x_ = VecX::Zero(size);  // initial delta_x = 0_n;
   }
@@ -255,8 +379,76 @@ class Problem {
 
   /// 解线性方程
   void SolveLinearSystem() {
-    delta_x_ = Hessian_.inverse() * b_;
-    gDebug(delta_x_);
+    // gxt:
+    // 主要是求解出delta_x_
+    // 其中分成普通问题和SLAM问题
+    // 其中普通问题直接求解就好了
+    // SLAM由于矩阵比较稀疏，可以使用舒尔补的方式求解
+
+    // 非 SLAM 问题直接求解
+    if (problem_type_ == ProblemType::GENERIC_PROBLEM) {
+      delta_x_ = Hessian_.inverse() * b_;
+      gDebug(delta_x_);
+    } else {
+      // SLAM 问题采用舒尔补的计算方式
+
+      // step1: schur marginalization --> Hpp, bpp
+      int reserve_size = ordering_poses_;
+      int marg_size = ordering_landmarks_;
+
+      // TODO:: home work. 完成矩阵块取值，Hmm，Hpm，Hmp，bpp，bmm
+      // MatXX Hmm = Hessian_.block(?,?, ?, ?);
+      // MatXX Hpm = Hessian_.block(?,?, ?, ?);
+      // MatXX Hmp = Hessian_.block(?,?, ?, ?);
+      // VecX bpp = b_.segment(?,?);
+      // VecX bmm = b_.segment(?,?);
+      // NOTE: gxt 完成TODO
+      MatXX Hmm =
+          Hessian_.block(reserve_size, reserve_size, marg_size, marg_size);
+      MatXX Hpm = Hessian_.block(0, reserve_size, reserve_size, marg_size);
+      MatXX Hmp = Hessian_.block(reserve_size, 0, marg_size, reserve_size);
+      VecX bpp = b_.segment(0, reserve_size);
+      VecX bmm = b_.segment(reserve_size, marg_size);
+
+      // Hmm
+      // 是对角线矩阵，它的求逆可以直接为对角线块分别求逆，如果是逆深度，对角线块为1维的，则直接为对角线的倒数，这里可以加速
+      MatXX Hmm_inv(MatXX::Zero(marg_size, marg_size));
+      for (auto landmarkVertex : idx_landmark_vertices_) {
+        int idx = landmarkVertex.second->OrderingId() - reserve_size;
+        int size = landmarkVertex.second->LocalDimension();
+        Hmm_inv.block(idx, idx, size, size) =
+            Hmm.block(idx, idx, size, size).inverse();
+      }
+
+      // TODO:: home work. 完成舒尔补 Hpp, bpp 代码
+      MatXX tempH = Hpm * Hmm_inv;
+      // H_pp_schur_ = Hessian_.block(?,?,?,?) - tempH * Hmp;
+      // b_pp_schur_ = bpp - ? * ?;
+      // NOTE: gxt 完成TODO
+      H_pp_schur_ =
+          Hessian_.block(0, 0, reserve_size, reserve_size) - tempH * Hmp;
+      b_pp_schur_ = bpp - tempH * bmm;
+
+      // step2: solve Hpp * delta_x = bpp
+      VecX delta_x_pp(VecX::Zero(reserve_size));
+      // PCG Solver
+      for (ulong i = 0; i < ordering_poses_; ++i) {
+        H_pp_schur_(i, i) += my_type{currentLambda_};
+      }
+
+      int n = H_pp_schur_.rows() * 2;  // 迭代次数
+      delta_x_pp = PCGSolver(H_pp_schur_, b_pp_schur_,
+                             n);  // 哈哈，小规模问题，搞 pcg 花里胡哨
+      delta_x_.head(reserve_size) = delta_x_pp;
+      //        std::cout << delta_x_pp.transpose() << std::endl;
+
+      // TODO:: home work. step3: solve landmark
+      VecX delta_x_ll(marg_size);
+      // delta_x_ll = ???;
+      // NOTE: gxt 完成TODO
+      delta_x_ll = Hmm_inv * (bmm - Hmp * delta_x_pp);
+      delta_x_.tail(marg_size) = delta_x_ll;
+    }
     // delta_x_ = H.ldlt().solve(b_);
   }
 
@@ -288,10 +480,17 @@ class Problem {
   void ComputePrior();
 
   /// 判断一个顶点是否为Pose顶点
-  bool IsPoseVertex(std::shared_ptr<Vertex> v);
+  bool IsPoseVertex(std::shared_ptr<Vertex> v) {
+    std::string type = v->TypeInfo();
+    return type == std::string("VertexPose");
+  }
 
   /// 判断一个顶点是否为landmark顶点
-  bool IsLandmarkVertex(std::shared_ptr<Vertex> v);
+  bool IsLandmarkVertex(std::shared_ptr<Vertex> v) {
+    std::string type = v->TypeInfo();
+    return type == std::string("VertexPointXYZ") ||
+           type == std::string("VertexInverseDepth");
+  }
 
   /// 在新增顶点后，需要调整几个hessian的大小
   void ResizePoseHessiansWhenAddingPose(std::shared_ptr<Vertex> v);
@@ -411,7 +610,46 @@ class Problem {
   }
 
   /// PCG 迭代线性求解器
-  VecX PCGSolver(const MatXX& A, const VecX& b, int max_iter);
+  /// 用在SLAM舒尔补求解中
+  VecX PCGSolver(const MatXX& A, const VecX& b, int maxIter = -1) {
+    assert(A.rows() == A.cols() &&
+           "PCG solver ERROR: A is not a square matrix");
+    int rows = b.rows();
+    int n = maxIter < 0 ? rows : maxIter;
+    VecX x(VecX::Zero(rows));
+    MatXX M_inv = A.diagonal().asDiagonal().inverse();
+    VecX r0(b);  // initial r = b - A*0 = b
+    VecX z0 = M_inv * r0;
+    VecX p(z0);
+    VecX w = A * p;
+    double r0z0 = static_cast<double>(r0.dot(z0));
+    double alpha = r0z0 / static_cast<double>(p.dot(w));
+    VecX r1 = r0 - my_type{alpha} * w;
+    int i = 0;
+    double threshold = 1e-6 * static_cast<double>(r0.norm());
+//    while (static_cast<double>(r1.norm()) > threshold && i < n) {
+    while (true) {
+      // NOTE: gxt: 注意这里有个大坑，直接用my_type的norm()会触发assert因为数字变小了？不懂，哈哈
+      my_type r1_norm=my_type{r1.cast<double>().norm()};
+      double r1_norm_double=static_cast<double>(r1_norm);
+      if(r1_norm_double<=threshold) {break;}
+      if(i>=n) {break;}
+
+      i++;
+      VecX z1 = M_inv * r1;
+      double r1z1 = static_cast<double>(r1.dot(z1));
+      double belta = r1z1 / r0z0;
+      z0 = z1;
+      r0z0 = r1z1;
+      r0 = r1;
+      p = my_type{belta} * p + z1;
+      w = A * p;
+      alpha = r1z1 / static_cast<double>(p.dot(w));
+      x += my_type{alpha} * p;
+      r1 -= my_type{alpha} * w;
+    }
+    return x;
+  }
 
   double currentLambda_;
   double currentChi_;
@@ -444,7 +682,7 @@ class Problem {
   HashVertex verticies_;
 
   /// all edges
-  HashEdge edges_;//std::unordered_map<unsigned long, std::shared_ptr<Edge>>
+  HashEdge edges_;  // std::unordered_map<unsigned long, std::shared_ptr<Edge>>
 
   /// 由vertex id查询edge
   HashVertexIdToEdge vertexToEdge_;
