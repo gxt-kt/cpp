@@ -84,7 +84,7 @@ class Problem {
       return false;
     }
 
-    TIME_BEGIN();
+    TIME_BEGIN(Problem_Solve);
 
     // 统计优化变量的维数，为构建 H 矩阵做准备
     SetOrdering();
@@ -274,6 +274,9 @@ class Problem {
                                       // landmark 的维数，后面会对他们进行排序
       {
         AddOrderingSLAM(vertex.second);
+      } else if(problem_type_ ==
+          ProblemType::GENERIC_PROBLEM) {
+        vertex.second->SetOrderingId(ordering_generic_-vertex.second->LocalDimension());
       }
       if (IsPoseVertex(vertex.second)) {
         std::cout << vertex.second->Id()

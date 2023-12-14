@@ -24,6 +24,8 @@ add_subdirectory(backend)
 
 add_executable(least_square least_square_main.cc)
 target_link_libraries(least_square ls_solve)
+add_executable(least_square2 least_square2_main.cc)
+target_link_libraries(least_square2 ls_solve)
 
 
 add_executable(test_ba test_ba_main.cc edge_reprojection.cc)
