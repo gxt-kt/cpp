@@ -22,6 +22,7 @@ Eigen::Matrix3d rotation_matrix = (Eigen::Matrix3d() <<
 Eigen::Quaterniond quaternion(0.707107, 0.188982, 0.377964, 0.566947);
 
 // Euler Angle
+// Ref: https://stackoverflow.com/questions/27508242/roll-pitch-and-yaw-from-rotation-matrix-with-eigen-library
 Eigen::Vector3d euler(2.89574, 2.29533, -1.67878);
 
 // clang-format on
