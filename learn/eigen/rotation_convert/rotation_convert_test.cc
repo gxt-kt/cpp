@@ -1,5 +1,4 @@
 #include "common.h"
-#include "math.h"
 #include "rotaion_convert.hpp"
 
 
@@ -21,9 +20,19 @@ Eigen::Matrix3d rotation_matrix = (Eigen::Matrix3d() <<
 // Quaternion
 Eigen::Quaterniond quaternion(0.707107, 0.188982, 0.377964, 0.566947);
 
-// Euler Angle
-// Ref: https://stackoverflow.com/questions/27508242/roll-pitch-and-yaw-from-rotation-matrix-with-eigen-library
-Eigen::Vector3d euler(2.89574, 2.29533, -1.67878);
+// Euler Angle 
+// 我们定义的欧拉角顺序是外旋定轴RPY，就是先转X，再转Y，再转Z
+// Ref: https://stackoverflow.com/questions/54125208/eigen-eulerangles-returns-incorrect-values
+// euler(0)是z轴的值
+// euler(1)是y轴的值
+// euler(2)是x轴的值
+Eigen::Vector3d euler(1.49533, 0.32598, 0.82495);
+// euler_tran(0)是x轴的值
+// euler_tran(1)是y轴的值
+// euler_tran(2)是z轴的值
+Eigen::Vector3d euler_tran(0.82495, 0.32598, 1.49533);
+// 注意区分以下代码中的euler和euler_tran
+
 
 // clang-format on
 
@@ -41,6 +50,8 @@ int main(int argc, char* argv[]) {
   gDebug(rotation_matrix);
   gDebug(axis_angle.matrix());
   gDebug(euler.transpose());
+  gDebug(euler_tran.transpose());
+  gDebug(rotation_matrix.eulerAngles(2,1,0));
 
   ASSERT(rotation_matrix,quaternion.matrix());
 
@@ -77,7 +88,7 @@ int main(int argc, char* argv[]) {
     gDebug(quaternion1);
     ASSERT(quaternion.coeffs(),quaternion1.coeffs());
 
-    Eigen::Vector3d euler1 = Eigen::RotationMatrixToEulerAngles(rotation_matrix);
+    Eigen::Vector3d euler1 = Eigen::RotationMatrixToEuler(rotation_matrix);
     gDebug(euler1);
     ASSERT(euler,euler1);
   }
@@ -91,25 +102,24 @@ int main(int argc, char* argv[]) {
     gDebug(rotation_matrix1);
     ASSERT(rotation_matrix,rotation_matrix1);
 
-    Eigen::Vector3d euler1 = Eigen::QuaternionToEulerAngles(quaternion);
+    Eigen::Vector3d euler1 = Eigen::QuaternionToEuler(quaternion);
     gDebug(euler1);
     ASSERT(euler,euler1);
   }
   {
     gDebugCol2() << G_SPLIT_LINE;
-    Eigen::AngleAxisd axis_angle1 = Eigen::EulerToAxisAngle(euler);
+    Eigen::AngleAxisd axis_angle1 = Eigen::EulerToAxisAngle(euler_tran);
     gDebug(axis_angle1.matrix());
     ASSERT(axis_angle.matrix(),axis_angle1.matrix());
 
-    Eigen::Matrix3d rotation_matrix1 = Eigen::EulerToRotationMatrix(euler);
+    Eigen::Matrix3d rotation_matrix1 = Eigen::EulerToRotationMatrix(euler_tran);
     gDebug(rotation_matrix1);
     ASSERT(rotation_matrix,rotation_matrix1);
 
-    Eigen::Quaterniond quaternion1 = Eigen::EulerToQuaternion(euler);
+    Eigen::Quaterniond quaternion1 = Eigen::EulerToQuaternion(euler_tran);
     gDebug(quaternion1);
     ASSERT(quaternion.coeffs(),quaternion1.coeffs());
   }
-  // clang-format on
   
 
   {
@@ -128,12 +138,12 @@ int main(int argc, char* argv[]) {
     ASSERT(quaternion.coeffs(),quaternion1.coeffs());
     ASSERT(quaternion.coeffs(),quaternion2.coeffs());
 
-    Eigen::Vector3d euler1 = Eigen::AxisAngleToEuler(axis, angle);
-    Eigen::Vector3d euler2 = Eigen::AxisAngleToEuler(axis_angle);
+    Eigen::Vector3d euler1 = gxt::AxisAngleToEuler(axis, angle);
+    Eigen::Vector3d euler2 = gxt::AxisAngleToEuler(axis_angle);
     gDebug(euler1);
     gDebug(euler2);
-    ASSERT(euler,euler1);
-    ASSERT(euler,euler2);
+    ASSERT(euler_tran,euler1);
+    ASSERT(euler_tran,euler2);
   }
   {
     gDebugCol4() << G_SPLIT_LINE;
@@ -141,28 +151,43 @@ int main(int argc, char* argv[]) {
     gDebug(axis_angle1.matrix());
     ASSERT(axis_angle.matrix(),axis_angle1.matrix());
 
-    Eigen::Quaterniond quaternion1 = Eigen::RotationMatrixToQuaternion(rotation_matrix);
+    Eigen::Quaterniond quaternion1 = gxt::RotationMatrixToQuaternion(rotation_matrix);
     gDebug(quaternion1);
     ASSERT(quaternion.coeffs(),quaternion1.coeffs());
 
-    // Eigen::Vector3d euler1 = gxt::RotationMatrixToEulerAngles(rotation_matrix);
-    // gDebug(euler1);
-    // ASSERT(euler,euler1);
+    Eigen::Vector3d euler1 = gxt::RotationMatrixToEuler(rotation_matrix);
+    gDebug(euler1);
+    ASSERT(euler_tran,euler1);
   }
   {
     gDebugCol4() << G_SPLIT_LINE;
-    Eigen::AngleAxisd axis_angle1 = Eigen::EulerToAxisAngle(euler);
+    Eigen::AngleAxisd axis_angle1 = gxt::QuaternionToAxisAngle(quaternion);
     gDebug(axis_angle1.matrix());
     ASSERT(axis_angle.matrix(),axis_angle1.matrix());
 
-    Eigen::Matrix3d rotation_matrix1 = gxt::EulerToRotationMatrix(euler);
+    Eigen::Matrix3d rotation_matrix1 = gxt::QuaternionToRotationMatrix(quaternion);
     gDebug(rotation_matrix1);
     ASSERT(rotation_matrix,rotation_matrix1);
 
-    Eigen::Quaterniond quaternion1 = Eigen::EulerToQuaternion(euler);
+    Eigen::Vector3d euler1 = gxt::QuaternionToEuler(quaternion);
+    gDebug(euler1);
+    ASSERT(euler_tran,euler1);
+  }
+  {
+    gDebugCol4() << G_SPLIT_LINE;
+    Eigen::AngleAxisd axis_angle1 = gxt::EulerToAxisAngle(euler_tran);
+    gDebug(axis_angle1.matrix());
+    ASSERT(axis_angle.matrix(),axis_angle1.matrix());
+
+    Eigen::Matrix3d rotation_matrix1 = gxt::EulerToRotationMatrix(euler_tran);
+    gDebug(rotation_matrix1);
+    ASSERT(rotation_matrix,rotation_matrix1);
+
+    Eigen::Quaterniond quaternion1 = gxt::EulerToQuaternion(euler_tran);
     gDebug(quaternion1);
     ASSERT(quaternion.coeffs(),quaternion1.coeffs());
   }
 
+  // clang-format on
   return 0;
 }
