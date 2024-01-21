@@ -110,6 +110,59 @@ int main(int argc, char* argv[]) {
     ASSERT(quaternion.coeffs(),quaternion1.coeffs());
   }
   // clang-format on
+  
+
+  {
+    gDebugCol4() << G_SPLIT_LINE;
+    Eigen::Matrix3d rotation_matrix1 = gxt::AxisAngleToRotationMatrix(axis, angle);
+    Eigen::Matrix3d rotation_matrix2 = gxt::AxisAngleToRotationMatrix(axis_angle);
+    gDebug(rotation_matrix1);
+    gDebug(rotation_matrix2);
+    ASSERT(rotation_matrix,rotation_matrix1);
+    ASSERT(rotation_matrix,rotation_matrix2);
+
+    Eigen::Quaterniond quaternion1 = gxt::AxisAngleToQuaternion(axis, angle);
+    Eigen::Quaterniond quaternion2 = gxt::AxisAngleToQuaternion(axis_angle);
+    gDebug(quaternion1);
+    gDebug(quaternion2);
+    ASSERT(quaternion.coeffs(),quaternion1.coeffs());
+    ASSERT(quaternion.coeffs(),quaternion2.coeffs());
+
+    Eigen::Vector3d euler1 = Eigen::AxisAngleToEuler(axis, angle);
+    Eigen::Vector3d euler2 = Eigen::AxisAngleToEuler(axis_angle);
+    gDebug(euler1);
+    gDebug(euler2);
+    ASSERT(euler,euler1);
+    ASSERT(euler,euler2);
+  }
+  {
+    gDebugCol4() << G_SPLIT_LINE;
+    Eigen::AngleAxisd axis_angle1 = gxt::RotationMatrixToAxisAngle(rotation_matrix);
+    gDebug(axis_angle1.matrix());
+    ASSERT(axis_angle.matrix(),axis_angle1.matrix());
+
+    Eigen::Quaterniond quaternion1 = Eigen::RotationMatrixToQuaternion(rotation_matrix);
+    gDebug(quaternion1);
+    ASSERT(quaternion.coeffs(),quaternion1.coeffs());
+
+    // Eigen::Vector3d euler1 = gxt::RotationMatrixToEulerAngles(rotation_matrix);
+    // gDebug(euler1);
+    // ASSERT(euler,euler1);
+  }
+  {
+    gDebugCol4() << G_SPLIT_LINE;
+    Eigen::AngleAxisd axis_angle1 = Eigen::EulerToAxisAngle(euler);
+    gDebug(axis_angle1.matrix());
+    ASSERT(axis_angle.matrix(),axis_angle1.matrix());
+
+    Eigen::Matrix3d rotation_matrix1 = gxt::EulerToRotationMatrix(euler);
+    gDebug(rotation_matrix1);
+    ASSERT(rotation_matrix,rotation_matrix1);
+
+    Eigen::Quaterniond quaternion1 = Eigen::EulerToQuaternion(euler);
+    gDebug(quaternion1);
+    ASSERT(quaternion.coeffs(),quaternion1.coeffs());
+  }
 
   return 0;
 }
