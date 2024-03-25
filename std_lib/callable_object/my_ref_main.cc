@@ -2,6 +2,13 @@
 
 // Ref: 类型擦除可以参考：
 
+/*
+ * std::ref
+ * 通常用在默认传不了引用的地方，比如std::bind默认是拷贝
+ * 如果我们想传递引用，就可以用ref包装一层
+ * 这个ref本质上就是在类内记住数据的地址，并重载了对应的类型，可以隐式转化称类型
+ */
+
 GXT_NAMESPACE_BEGIN
 
 template <typename _Tp>

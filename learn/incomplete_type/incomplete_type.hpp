@@ -64,7 +64,10 @@ struct A {
   // std::pair<int, A> b;
 
   // error incomplete-types
-  // std::variant<A,int> c;
+  // std::variant<A,int> b;
+
+  // error incomplete-types
+  // std::array<A,10> b;
 
   // only support g++ version > 12
 #if __GNUC__ >= 12
