@@ -47,9 +47,9 @@ template <template <typename...> class Ref, typename... Args>
 struct is_specialization<Ref<Args...>, Ref> : std::true_type {};
 
 void Test() {
-  gDebug(is_specialization<std::vector<int>, std::vector>::value);
-  gDebug(is_specialization<std::list<int>, std::vector>::value);
-  gDebug(is_specialization<std::tuple<int, double>, std::tuple>::value);
+  gDebug() << is_specialization<std::vector<int>, std::vector>::value;
+  gDebug() << is_specialization<std::list<int>, std::vector>::value;
+  gDebug() << is_specialization<std::tuple<int, double>, std::tuple>::value;
 }
 
 }  // namespace demo02
