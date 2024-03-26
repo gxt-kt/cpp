@@ -42,7 +42,8 @@ int main(int argc, char* argv[]) {
   gDebug() << G_SPLIT_LINE;
 
   {
-    decltype(Fun) a;  // cannot set value so cannot use
+    decltype(Fun) a;  // hasn't set value so cannot use
+    // a(); // error
 
     decltype(&Fun) b1 = Fun;
     decltype(&Fun) b2 = *Fun;
@@ -78,7 +79,5 @@ int main(int argc, char* argv[]) {
     // gDebug(TYPET(decltype(Test::Fun))); //error
     gDebug(TYPET(decltype(&Test::Fun)));
     decltype(&Test::Fun) b;
-
   }
-
 }
