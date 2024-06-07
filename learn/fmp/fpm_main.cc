@@ -7,6 +7,13 @@
 #include "fpm/ios.hpp"
 #include "fpm/math.hpp"
 
+
+template <typename BaseType, typename IntermediateType, unsigned int F1,unsigned int F2>
+constexpr
+typename std::enable_if<F1!=F2, int>::type operator+(fpm::fixed<BaseType,IntermediateType,F1> n1,fpm::fixed<BaseType,IntermediateType,F2> n2) {
+  return F1+F2;
+}
+
 // template<typename _Scalar, int _Rows, int _Cols>
 // gxt::DebugStream& operator<<(gxt::DebugStream& os, const
 // Eigen::Matrix<_Scalar,_Rows,_Cols> matrix) {
@@ -49,6 +56,17 @@ int main(int argc, char* argv[]) {
     fpm::fixed<std::int32_t, std::int64_t, 12> b(0.14);
 
     // gDebug(static_cast<double>(a + b));
+    // gDebug(static_cast<double>(a - b));
+    // gDebug(static_cast<double>(a * b));
+    // gDebug(static_cast<double>(a / b));
+  }
+  {
+    gDebugCol2() << G_SPLIT_LINE;
+    fpm::fixed_16_16 x;
+    fpm::fixed<std::int32_t, std::int64_t, 16> a(0.11);
+    fpm::fixed<std::int32_t, std::int64_t, 12> b(0.14);
+
+    gDebugWarn(static_cast<double>(a + b));
     // gDebug(static_cast<double>(a - b));
     // gDebug(static_cast<double>(a * b));
     // gDebug(static_cast<double>(a / b));

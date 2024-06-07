@@ -1,3 +1,5 @@
+return ()
+
 # c version
 add_executable(thread_pool_c_main thread_pool_c_main.cc)
 target_link_libraries(thread_pool_c_main pthread)

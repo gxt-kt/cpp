@@ -1,3 +1,4 @@
+return ()
 # Get a list of all directories under ./test/
 file(
   GLOB directories

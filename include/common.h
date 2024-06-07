@@ -1,5 +1,5 @@
 #pragma once
-#include "/home/gxt_kt/Projects/debugstream/debugstream.hpp"
+#include "/Users/gxt_kt/Projects/debugstream/debugstream.hpp"
 
 #define GXT_NAMESPACE gxt
 

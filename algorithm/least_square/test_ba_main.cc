@@ -6,6 +6,24 @@
 #include "se3.hpp"
 #include "so3.hpp"
 
+template <typename Derived>
+static Eigen::Quaternion<typename Derived::Scalar> deltaQ(
+    const Eigen::MatrixBase<Derived> &theta) {
+  typedef typename Derived::Scalar Scalar_t;
+  // gDebug(TYPET(Derived));
+  // gDebug(TYPET(Scalar_t));
+  // gDebug() << __PRETTY_FUNCTION__;
+
+  Eigen::Quaternion<Scalar_t> dq;
+  Eigen::Matrix<Scalar_t, 3, 1> half_theta = theta;
+  half_theta /= static_cast<Scalar_t>(2.0);
+  dq.w() = static_cast<Scalar_t>(1.0);
+  dq.x() = half_theta.x();
+  dq.y() = half_theta.y();
+  dq.z() = half_theta.z();
+  return dq;
+}
+
 /**
  * Pose vertex
  * parameters: tx, ty, tz, qx, qy, qz, qw, 7 DoF
@@ -23,6 +41,9 @@ class VertexPose : public Vertex {
   /// 默认是向量加
   virtual void Plus(const VecX &delta) override {
     VecX &parameters = Parameters();
+
+    VecX para_tmp = Parameters();
+
     parameters.head<3>() += delta.head<3>();
     Qd q(parameters[6], parameters[3], parameters[4], parameters[5]);
     q = q * (Sophus::SO3d::exp(Eigen::Vector3d(static_cast<double>(delta[3]),
@@ -35,6 +56,34 @@ class VertexPose : public Vertex {
     parameters[4] = q.y();
     parameters[5] = q.z();
     parameters[6] = q.w();
+    // gDebug() << VAR(parameters.transpose());
+
+    // 上面用的是Sophus进行四元数的相加
+    // 下面用Eigen库进行相加，然后对结果进行对比
+    // {
+    //   Eigen::Map<const Eigen::Vector3d> p(&para_tmp(0));
+    //   Eigen::Map<const Eigen::Quaterniond> q(&para_tmp(0) + 3);
+
+    //   Eigen::Map<const Eigen::Vector3d> dp(&delta(0));
+    //   Eigen::Quaterniond dq=deltaQ(Eigen::Map<const Eigen::Vector3d>(&delta(0) + 3));
+
+    //   Eigen::Vector3d p_plus_delta;
+    //   Eigen::Quaterniond q_plus_delta;
+
+    //   p_plus_delta = p + dp;
+    //   para_tmp.head<3>() = p_plus_delta;
+
+    //   q_plus_delta = (q * dq).normalized();
+    //   para_tmp[3] = q_plus_delta.x();
+    //   para_tmp[4] = q_plus_delta.y();
+    //   para_tmp[5] = q_plus_delta.z();
+    //   para_tmp[6] = q_plus_delta.w();
+
+    //   gDebug() << VAR(para_tmp.transpose());
+    //   gDebugCol3() << G_SPLIT_LINE;
+    // }
+
+    // 下面这个演示的是数值分析判断Pulse是否计算正确
     //    Qd test = Sophus::SO3d::exp(Vec3(0.2, 0.1, 0.1)).unit_quaternion() *
     //    Sophus::SO3d::exp(-Vec3(0.2, 0.1, 0.1)).unit_quaternion(); std::cout
     //    << test.x()<<" "<< test.y()<<" "<<test.z()<<" "<<test.w() <<std::endl;
@@ -95,8 +144,8 @@ void GetSimDataInWordFrame(std::vector<Frame> &cameraPoses,
     // 绕 z轴 旋转
     Mat33 R;
     R = Eigen::AngleAxis<my_type>(my_type{theta}, Vec3::UnitZ());
-    Vec3 t = Vec3(
-        my_type{radius * cos(theta) - radius}, my_type{radius * sin(theta)}, my_type{1 * sin(2 * theta)});
+    Vec3 t = Vec3(my_type{radius * cos(theta) - radius},
+                  my_type{radius * sin(theta)}, my_type{1 * sin(2 * theta)});
     cameraPoses.push_back(Frame(R, t));
   }
 
@@ -108,13 +157,12 @@ void GetSimDataInWordFrame(std::vector<Frame> &cameraPoses,
     std::uniform_real_distribution<double> z_rand(4., 8.);
 
     Vec3 Pw(my_type{xy_rand(generator)}, my_type{xy_rand(generator)},
-                       my_type{z_rand(generator)});
+            my_type{z_rand(generator)});
     points.push_back(Pw);
 
     // 在每一帧上的观测量
     for (int i = 0; i < poseNums; ++i) {
-      Vec3 Pc =
-          cameraPoses[i].Rwc.transpose() * (Pw - cameraPoses[i].twc);
+      Vec3 Pc = cameraPoses[i].Rwc.transpose() * (Pw - cameraPoses[i].twc);
       Pc = Pc / Pc.z();  // 归一化图像平面
       Pc[0] += my_type{noise_pdf(generator)};
       Pc[1] += my_type{noise_pdf(generator)};
@@ -133,7 +181,8 @@ int main(int argc, char *argv[]) {
   std::vector<Frame> cameras;
   std::vector<Vec3> points;
   GetSimDataInWordFrame(cameras, points);
-  Eigen::Quaternion<my_type> qic(my_type{1}, my_type{0}, my_type{0}, my_type{0});
+  Eigen::Quaternion<my_type> qic(my_type{1}, my_type{0}, my_type{0},
+                                 my_type{0});
   Vec3 tic(my_type{0}, my_type{0}, my_type{0});
 
   // 构建 problem
@@ -201,9 +250,9 @@ int main(int argc, char *argv[]) {
 
   std::cout << "\nCompare MonoBA results after opt..." << std::endl;
   for (size_t k = 0; k < allPoints.size(); k += 1) {
-    std::cout << "after opt, point " << k << " : gt " << my_type{1.} / points[k].z()
-              << " ,noise " << noise_invd[k] << " ,opt "
-              << allPoints[k]->Parameters() << std::endl;
+    std::cout << "after opt, point " << k << " : gt "
+              << my_type{1.} / points[k].z() << " ,noise " << noise_invd[k]
+              << " ,opt " << allPoints[k]->Parameters() << std::endl;
   }
   std::cout << "------------ pose translation ----------------" << std::endl;
   for (int i = 0; i < vertexCams_vec.size(); ++i) {
