@@ -1,5 +1,11 @@
 #pragma once
+#ifdef __linux__
+#include "/home/gxt_kt/Projects/debugstream/debugstream.hpp"
+
+#elif __APPLE__
 #include "/Users/gxt_kt/Projects/debugstream/debugstream.hpp"
+#elif _WIN32
+#endif
 
 #define GXT_NAMESPACE gxt
 
