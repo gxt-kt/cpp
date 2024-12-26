@@ -13,18 +13,22 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   message("Building for Linux platform")
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
   message("Building for macOS platform")
-  set(CMAKE_C_COMPILER "/opt/homebrew/bin/aarch64-apple-darwin23-gcc-14") # gcc clang` 指定c编译器
-  set(CMAKE_CXX_COMPILER "/opt/homebrew/bin/aarch64-apple-darwin23-g++-14") # g++ clang++` 指定c++编译器
+  # set(CMAKE_C_COMPILER "/opt/homebrew/bin/aarch64-apple-darwin23-gcc-14") # gcc clang` 指定c编译器
+  # set(CMAKE_CXX_COMPILER "/opt/homebrew/bin/aarch64-apple-darwin23-g++-14") # g++ clang++` 指定c++编译器
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   message("Building for Windows platform")
 else()
   message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
 endif()
 
+# use debugstream for all target
+find_package(debugstream)
+include_directories(/usr/local/include)
+link_libraries(debugstream)
 
 include_directories(include)
 
-add_subdirectory(std_lib)
+# add_subdirectory(std_lib)
 add_subdirectory(learn)
 add_subdirectory(algorithm)
 

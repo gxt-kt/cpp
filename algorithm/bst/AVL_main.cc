@@ -1,13 +1,13 @@
 #include "AVL.hpp"
 
 void PrintTree_1(Node* root) {
-  gxt::algorithm::DrawTree(gxt::algorithm::CreateBinaryTreeStructure(
+  gxt::leetcode::PrintTree2(
       root, [](Node* node) { return node->left; },
       [](Node* node) { return node->right; },
-      [](Node* node) { return node->key; }));
+      [](Node* node) { return node->key; });
 }
 void PrintTree_2(Node* root) {
-  std::cout << gxt::algorithm::PrintTree(
+  std::cout << gxt::leetcode::PrintTree2(
       root, [](Node* node) { return node->left; },
       [](Node* node) { return node->right; },
       [](Node* node) { return node->key; });

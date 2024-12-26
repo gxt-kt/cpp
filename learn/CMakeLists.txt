@@ -1,5 +1,3 @@
-# include_directories(include)
-
 # Get a list of all directories under ./test/
 file(
   GLOB directories

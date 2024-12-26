@@ -10,8 +10,8 @@ template <typename Derived>
 static Eigen::Quaternion<typename Derived::Scalar> deltaQ(
     const Eigen::MatrixBase<Derived> &theta) {
   typedef typename Derived::Scalar Scalar_t;
-  // gDebug(TYPET(Derived));
-  // gDebug(TYPET(Scalar_t));
+  // gDebug(G_TYPET(Derived));
+  // gDebug(G_TYPET(Scalar_t));
   // gDebug() << __PRETTY_FUNCTION__;
 
   Eigen::Quaternion<Scalar_t> dq;

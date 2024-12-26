@@ -30,14 +30,14 @@ int main(int argc, char* argv[]) {
 
   gDebug() << G_SPLIT_LINE;
 
-  gDebug(TYPET(decltype(Fun)));
-  gDebug(TYPET(decltype(&Fun)));
-  // gDebug(TYPET(decltype(&(&Fun)))); // error
-  gDebug(TYPET(decltype(*Fun)));
-  gDebug(TYPET(decltype(*(*Fun))));
-  gDebug(TYPET(decltype(&(*Fun))));
-  gDebug(TYPET(decltype((*(&Fun)))));
-  gDebug(TYPET(decltype((*(&(*(&Fun)))))));
+  gDebug(G_TYPET(decltype(Fun)));
+  gDebug(G_TYPET(decltype(&Fun)));
+  // gDebug(G_TYPET(decltype(&(&Fun)))); // error
+  gDebug(G_TYPET(decltype(*Fun)));
+  gDebug(G_TYPET(decltype(*(*Fun))));
+  gDebug(G_TYPET(decltype(&(*Fun))));
+  gDebug(G_TYPET(decltype((*(&Fun)))));
+  gDebug(G_TYPET(decltype((*(&(*(&Fun)))))));
 
   gDebug() << G_SPLIT_LINE;
 
@@ -63,21 +63,21 @@ int main(int argc, char* argv[]) {
   gDebugCol5() << "Test::FunStatic is like Fun";
 
   {
-    gDebug(TYPET(decltype(Test::FunStatic)));
-    gDebug(TYPET(decltype(&Test::FunStatic)));
-    // gDebug(TYPET(decltype(&(&Test::FunStatic)))); // error
-    gDebug(TYPET(decltype(*Test::FunStatic)));
-    gDebug(TYPET(decltype(*(*Test::FunStatic))));
-    gDebug(TYPET(decltype(&(*Test::FunStatic))));
-    gDebug(TYPET(decltype((*(&Test::FunStatic)))));
-    gDebug(TYPET(decltype((*(&(*(&Test::FunStatic)))))));
+    gDebug(G_TYPET(decltype(Test::FunStatic)));
+    gDebug(G_TYPET(decltype(&Test::FunStatic)));
+    // gDebug(G_TYPET(decltype(&(&Test::FunStatic)))); // error
+    gDebug(G_TYPET(decltype(*Test::FunStatic)));
+    gDebug(G_TYPET(decltype(*(*Test::FunStatic))));
+    gDebug(G_TYPET(decltype(&(*Test::FunStatic))));
+    gDebug(G_TYPET(decltype((*(&Test::FunStatic)))));
+    gDebug(G_TYPET(decltype((*(&(*(&Test::FunStatic)))))));
   }
 
   gDebug() << G_SPLIT_LINE;
 
   {
-    // gDebug(TYPET(decltype(Test::Fun))); //error
-    gDebug(TYPET(decltype(&Test::Fun)));
+    // gDebug(G_TYPET(decltype(Test::Fun))); //error
+    gDebug(G_TYPET(decltype(&Test::Fun)));
     decltype(&Test::Fun) b;
   }
 }

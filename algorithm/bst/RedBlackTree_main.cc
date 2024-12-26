@@ -1,13 +1,15 @@
 #include "RedBlackTree.hpp"
 
-static void PrintTree_1(Node* root) {
-  gxt::algorithm::DrawTree(gxt::algorithm::CreateBinaryTreeStructure(
+void PrintTree_1(Node* root) {
+  gxt::leetcode::PrintTree2(
       root, [](Node* node) { return node->left; },
       [](Node* node) { return node->right; },
-      [](Node* node) { return node->val; }));
+      [](Node* node) { return node->val; });
 }
 
 int main(int argc, char* argv[]) {
+  gDebug("???");
+  gDebugLog("???");
   RBTree tree;
 
   tree.insert(7);

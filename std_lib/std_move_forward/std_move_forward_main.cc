@@ -2,7 +2,7 @@
 
 template <typename T>
 void FunT(T&& a) {
-  gDebugCol1(TYPET(T));
+  gDebugCol1(G_TYPET(T));
   gDebugCol1(TYPE(GXT_NAMESPACE::forward<T>(a)));
 }
 
